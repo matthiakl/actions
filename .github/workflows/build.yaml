@@ -64,13 +64,14 @@ jobs:
       - name: Check missing artifacts
         run: |
           RELEASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/latest"
-          curl -o latest_artifacts.list "$RELEASE_URL/artifacts.list"
           mkdir Widelands-latest
-          for ARTIFACT in $(cat latest_artifacts.list)
+          cd Widelands-latest
+          curl -O "$RELEASE_URL/artifacts.list"
+          for ARTIFACT in $(cat artifacts.list)
           do
             MATRIX=$(echo $ARTIFACT | sed 's/Widelands-[0-9a-f]*-//' -)
-            ls Widelands*/Widelands*${MATRIX} || \
-              curl --output-dir Widelands-latest -O "$RELEASE_URL/$ARTIFACT"
+            ls ../Widelands*/Widelands*${MATRIX} || \
+              curl -O "$RELEASE_URL/$ARTIFACT"
           done
         
       - name: List artifacts
