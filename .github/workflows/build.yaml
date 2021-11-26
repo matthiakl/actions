@@ -60,7 +60,6 @@ jobs:
           fi
       - name: Download artifacts
         uses: actions/download-artifact@v2
-        
       - name: Check missing artifacts
         run: |
           RELEASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/latest"
@@ -69,17 +68,14 @@ jobs:
           curl -L -O "$RELEASE_URL/artifacts.list"
           for ARTIFACT in $(cat artifacts.list)
           do
+            [ "${ARTIFACT%%-*}" != "Widelands" ] && continue
             MATRIX=$(echo $ARTIFACT | sed 's/Widelands-[0-9a-f]*-//' -)
             ls ../Widelands*/Widelands*${MATRIX} || \
               curl -L -O "$RELEASE_URL/$ARTIFACT"
           done
-        
       - name: List artifacts
         run: |
-          find . -name 'Widelands*' -type f -printf '%f\n' > artifacts.list
-          cat artifacts.list
-          exit 1
-          
+          find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
       - name: Updating latest pre-release
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
