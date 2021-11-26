@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Check origin
         run: |
-          if [ "${GITHUB_REPOSITORY%/*}" == "widelands" ]
+          if [ "${GITHUB_REPOSITORY%/*}" != "widelands" ]
           then
             echo "Skipping release creation on fork"
             exit 1
