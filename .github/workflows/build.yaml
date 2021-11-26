@@ -14,7 +14,7 @@ jobs:
           - Debug
         arch:
           - x64
-          - x86
+          #- x86
     name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
     runs-on: windows-latest
     steps:
@@ -38,22 +38,24 @@ jobs:
     runs-on: macos-11
     steps:
     - name: Dummy 
-      run: echo "${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}" > ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg && exit 1
+      run: echo "${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}" > ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
     - name: Uploading DMG
       uses: actions/upload-artifact@v2
       with:
         name: Widelands ${{ matrix.config }} ${{ matrix.compiler }} MacOS 11 AppImage
         path: ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
         
-  gh_pre_release:
+  dev_release:
+    name: Automated development pre-release
     if: ${{ github.ref == 'refs/heads/master' && always() }}
-    needs: [windows-msvc, macos]
+    needs: [windows, windows-msvc, macos]
     runs-on: "ubuntu-latest"
 
     steps:
       - name: Check origin
+        # switch to widelands only after merging
         run: |
-          if [ "${GITHUB_REPOSITORY%/*}" != "matthiakl" ]
+          if [ "${GITHUB_REPOSITORY%/*}" != "matthiakl" ] && [ "${GITHUB_REPOSITORY%/*}" == "widelands" ]
           then
             echo "Skipping release creation on fork"
             exit 1
@@ -61,6 +63,9 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v2
       - name: Check missing artifacts
+        # This step ensures, that the development release always contain an artifact for every platform
+        # artifacts.list lists all attachements of the pre-release. In case a build step failed, we detect
+        # that a file is missing and download the last successful build from the pre-release.
         run: |
           RELEASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/latest"
           mkdir Widelands-latest
@@ -77,6 +82,8 @@ jobs:
         run: |
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
       - name: Updating latest pre-release
+        # Creates a new pre-release with the "latest" tag and all gathered artifacts.
+        # Because all older artifacts are removed, we have to reupload the missing ones detected in the previous step
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
