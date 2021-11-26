@@ -48,7 +48,7 @@ jobs:
   dev_release:
     name: Automated development pre-release
     if: ${{ github.ref == 'refs/heads/master' && always() }}
-    needs: [windows, windows-msvc, macos]
+    needs: [windows-msvc, macos]
     runs-on: "ubuntu-latest"
 
     steps:
