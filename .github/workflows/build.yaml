@@ -1,0 +1,73 @@
+name: Build
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+  push:
+    branches: [ master ]
+
+jobs:
+  windows-msvc:
+    strategy:
+      matrix:
+        config:
+          - Release
+          - Debug
+        arch:
+          - x64
+          - x86
+    name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
+    runs-on: windows-latest
+    - name: Dummy 
+      run: echo "${{ github.workspace }}\Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.arch }}" > ${{ github.workspace }}\Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.arch }}.exe
+    - name: Uploading installer
+      uses: actions/upload-artifact@v2
+      with:
+        name: Widelands ${{ matrix.config }} ${{ matrix.arch }} Installer (MSVC)
+        path: ${{ github.workspace }}\Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.arch }}.exe
+
+  macos:
+    strategy:
+      matrix:
+        config:
+          - release
+          - debug
+        compiler:
+          - clang
+    name: MacOS ${{ matrix.config }} ${{ matrix.compiler }}
+    runs-on: macos-11
+    - name: Dummy 
+      run: echo "${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}" > ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
+    - name: Uploading DMG
+      uses: actions/upload-artifact@v2
+      with:
+        name: Widelands ${{ matrix.config }} ${{ matrix.compiler }} MacOS 11 AppImage
+        path: ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
+        
+  gh_pre_release:
+    if: ${{ github.ref == 'refs/heads/master' && always() }}
+    needs: [windows-msvc, macos]
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Check origin
+        run: |
+          if [ "${GITHUB_REPOSITORY%/*}" == "widelands" ]
+          then
+            echo "Skipping release creation on fork"
+            exit 1
+          fi
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+      - name: List artifacts
+        run: ls -lR
+      - name: Updating latest pre-release
+        uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        with:
+          repo_token: "${{ secrets.WIDELANDS_FORMAT_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Builds"
+          files: |
+            */*.exe
+            */*.dmg
+
