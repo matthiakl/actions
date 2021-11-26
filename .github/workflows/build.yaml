@@ -60,8 +60,11 @@ jobs:
           fi
       - name: Download artifacts
         uses: actions/download-artifact@v2
+        
       - name: List artifacts
-        run: ls -lR
+        run: |
+          find . -name 'Widelands*' -type f -printf '%f\n' > artifacts.list
+          
       - name: Updating latest pre-release
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
@@ -72,4 +75,5 @@ jobs:
           files: |
             */*.exe
             */*.dmg
+            artifacts.list
 
