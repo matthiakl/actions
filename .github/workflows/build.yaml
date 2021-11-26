@@ -38,7 +38,7 @@ jobs:
     runs-on: macos-11
     steps:
     - name: Dummy 
-      run: echo "${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}" > ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
+      run: echo "${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}" > ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg && exit 1
     - name: Uploading DMG
       uses: actions/upload-artifact@v2
       with:
@@ -60,6 +60,18 @@ jobs:
           fi
       - name: Download artifacts
         uses: actions/download-artifact@v2
+        
+      - name: Check missing artifacts
+        run: |
+          RELEASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/latest"
+          curl -o latest_artifacts.list "$RELEASE_URL/artifacts.list"
+          mkdir Widelands-latest
+          for ARTIFACT in $(cat latest_artifacts.list)
+          do
+            MATRIX=$(echo $ARTIFACT | sed 's/Widelands-[0-9a-f]*-//' -)
+            ls Widelands*/Widelands*${MATRIX} || \
+              curl --output-dir Widelands-latest -O "$RELEASE_URL/$ARTIFACT"
+          done
         
       - name: List artifacts
         run: |
