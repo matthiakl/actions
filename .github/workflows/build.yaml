@@ -14,7 +14,7 @@ jobs:
           - Debug
         arch:
           - x64
-          #- x86
+          - x86
     name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
     runs-on: windows-latest
     steps:
@@ -47,19 +47,11 @@ jobs:
         
   dev_release:
     name: Automated development pre-release
-    if: ${{ github.ref == 'refs/heads/master' && always() }}
+    if: ${{ github.repository == 'matthiakl/widelands' && github.ref == 'refs/heads/master' && always() }}
     needs: [windows-msvc, macos]
     runs-on: "ubuntu-latest"
 
     steps:
-      - name: Check origin
-        # switch to widelands only after merging
-        run: |
-          if [ "${GITHUB_REPOSITORY%/*}" != "matthiakl" ] && [ "${GITHUB_REPOSITORY%/*}" == "widelands" ]
-          then
-            echo "Skipping release creation on fork"
-            exit 1
-          fi
       - name: Download artifacts
         uses: actions/download-artifact@v2
       - name: Check missing artifacts
@@ -78,9 +70,27 @@ jobs:
             ls ../Widelands*/Widelands*${MATRIX} || \
               curl -L -O "$RELEASE_URL/$ARTIFACT"
           done
-      - name: List artifacts
+      - name: List and rename artifacts
         run: |
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
+          find . -name 'Widelands*' -type f -exec rename $GITHUB_SHA daily {} \;
+          for ARTIFACT in $(find . -name 'Widelands*' -type f)
+          do
+            pushd $(dirname $ARTIFACT)
+            md5sum $(basename $ARTIFACT) > $(basename $ARTIFACT).md5
+            popd
+          done
+          # curl exits 23 because grep will kill it after the first match
+          set +e
+          latest=$(curl -i "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/master" | grep -m 1 "\"sha\": ")
+          set -e
+          latest=${latest#*: \"}
+          latest=${latest%\",}
+          if [ "$latest" != "$GITHUB_SHA" ]
+          then
+            echo "The master branch ($GITHUB_REF) was updated from '$GITHUB_SHA' to '$latest', cancel"
+            exit 1
+          fi
       - name: Updating latest pre-release
         # Creates a new pre-release with the "latest" tag and all gathered artifacts.
         # Because all older artifacts are removed, we have to reupload the missing ones detected in the previous step
@@ -93,5 +103,6 @@ jobs:
           files: |
             */*.exe
             */*.dmg
+            */*.md5
             artifacts.list
 
