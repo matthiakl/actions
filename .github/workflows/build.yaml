@@ -13,7 +13,7 @@ jobs:
           - Release
           - Debug
         arch:
-          #- x64
+          - x64
           - x86
     name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
     runs-on: windows-latest
@@ -77,7 +77,7 @@ jobs:
           find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
             dir=$(dirname "$ARTIFACT")
             filename=$(basename "$ARTIFACT")
-            echo "Checksum for \"$ARTIFACT\": \"$dir\" \"${filename}\""
+            echo "Calculate checksum for \"$ARTIFACT\""
             pushd "$dir"
             md5sum "${filename}" > "${filename}.md5"
             popd
