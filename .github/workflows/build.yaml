@@ -78,8 +78,9 @@ jobs:
           do
             dir=$(dirname "$ARTIFACT")
             filename=$(basename "$ARTIFACT")
+            echo "Checksum for \"$ARTIFACT\": \"$dir\" \"${filename}\""
             pushd "$dir"
-            md5sum ${filename} > ${filename}.md5
+            md5sum "${filename}" > "${filename}.md5"
             popd
           done
           # curl exits 23 because grep will kill it after the first match
