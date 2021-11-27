@@ -74,8 +74,7 @@ jobs:
         run: |
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
           find . -name 'Widelands*' -type f -exec rename.ul $GITHUB_SHA daily "{}" \;
-          for ARTIFACT in $(find . -name 'Widelands*' -type f)
-          do
+          find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
             dir=$(dirname "$ARTIFACT")
             filename=$(basename "$ARTIFACT")
             echo "Checksum for \"$ARTIFACT\": \"$dir\" \"${filename}\""
