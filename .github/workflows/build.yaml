@@ -13,7 +13,7 @@ jobs:
           - Release
           - Debug
         arch:
-          #- x64
+          - x64
           - x86
     name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
     runs-on: windows-latest
