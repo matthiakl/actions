@@ -68,7 +68,7 @@ jobs:
             [ "${ARTIFACT%%-*}" != "Widelands" ] && continue
             MATRIX=$(echo $ARTIFACT | sed 's/Widelands-[0-9a-f]*-//' -)
             ls ../Widelands*/Widelands*${MATRIX} || \
-              curl -L -O "$RELEASE_URL/Widelands-daily-${MATRIX}"
+              curl -L -o $ARTIFACT "$RELEASE_URL/Widelands-daily-${MATRIX}"
           done
       - name: List and rename artifacts
         run: |
