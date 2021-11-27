@@ -13,7 +13,7 @@ jobs:
           - Release
           - Debug
         arch:
-          #- x64
+          - x64
           - x86
     name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
     runs-on: windows-latest
@@ -72,6 +72,8 @@ jobs:
           done
       - name: List and rename artifacts
         run: |
+          sudo apt-get update
+          sudo apt-get install rename
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
           find . -name 'Widelands*' -type f -exec prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "{}" \;
           find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
