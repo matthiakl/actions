@@ -63,6 +63,7 @@ jobs:
           mkdir Widelands-latest
           cd Widelands-latest
           curl -L -O "$RELEASE_URL/artifacts.list"
+          cat artifacts.list
           for ARTIFACT in $(cat artifacts.list)
           do
             [ "${ARTIFACT%%-*}" != "Widelands" ] && continue
@@ -99,7 +100,7 @@ jobs:
         run: |
           ls */Widelands-daily-*.exe
           ls */Widelands-daily-*.dmg
-          ls*/Widelands-daily-*.md5
+          ls */Widelands-daily-*.md5
           cat artifacts.list
           exit 1
       - name: Updating latest pre-release
