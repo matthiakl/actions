@@ -73,11 +73,13 @@ jobs:
       - name: List and rename artifacts
         run: |
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
-          find . -name 'Widelands*' -type f -exec rename $GITHUB_SHA daily {} \;
+          find . -name 'Widelands*' -type f -exec rename.ul $GITHUB_SHA daily "{}" \;
           for ARTIFACT in $(find . -name 'Widelands*' -type f)
           do
-            pushd $(dirname $ARTIFACT)
-            md5sum $(basename $ARTIFACT) > $(basename $ARTIFACT).md5
+            dir=$(dirname "$ARTIFACT")
+            filename=$(basename "$ARTIFACT")
+            pushd "$dir"
+            md5sum ${filename} > ${filename}.md5
             popd
           done
           # curl exits 23 because grep will kill it after the first match
