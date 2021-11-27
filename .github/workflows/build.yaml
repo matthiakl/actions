@@ -47,7 +47,7 @@ jobs:
         
   dev_release:
     name: Automated development pre-release
-    if: ${{ github.repository == 'matthiakl/widelands' && github.ref == 'refs/heads/master' && always() }}
+    if: ${{ github.repository == 'matthiakl/actions' && github.ref == 'refs/heads/master' && always() }}
     needs: [windows-msvc, macos]
     runs-on: "ubuntu-latest"
 
