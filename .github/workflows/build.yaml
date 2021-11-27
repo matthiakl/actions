@@ -73,7 +73,7 @@ jobs:
       - name: List and rename artifacts
         run: |
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
-          find . -name 'Widelands*' -type f -exec rename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "{}" \;
+          find . -name 'Widelands*' -type f -exec prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "{}" \;
           find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
             dir=$(dirname "$ARTIFACT")
             filename=$(basename "$ARTIFACT")
@@ -103,8 +103,8 @@ jobs:
           prerelease: true
           title: "Development Builds"
           files: |
-            */*.exe
-            */*.dmg
-            */*.md5
+            */Widelands-daily-*.exe
+            */Widelands-daily-*.dmg
+            */Widelands-daily-*.md5
             artifacts.list
 
