@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         config:
-          - release
+          #- release
           - debug
         compiler:
           - clang
@@ -95,6 +95,13 @@ jobs:
             echo "The master branch ($GITHUB_REF) was updated from '$GITHUB_SHA' to '$latest', cancel"
             exit 1
           fi
+      - name: Output release info
+        run: |
+          ls */Widelands-daily-*.exe
+          ls */Widelands-daily-*.dmg
+          ls*/Widelands-daily-*.md5
+          cat artifacts.list
+          exit 1
       - name: Updating latest pre-release
         # Creates a new pre-release with the "latest" tag and all gathered artifacts.
         # Because all older artifacts are removed, we have to reupload the missing ones detected in the previous step
