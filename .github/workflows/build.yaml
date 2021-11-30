@@ -25,6 +25,26 @@ jobs:
       with:
         name: Widelands ${{ matrix.config }} ${{ matrix.arch }} Installer (MSVC)
         path: ${{ github.workspace }}\Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.arch }}.exe
+        
+  windows:
+    strategy:
+      matrix:
+        config:
+          - Release
+          - Debug
+        arch:
+          - x64
+          - x86
+    name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MinGW)
+    runs-on: windows-latest
+    steps:
+    - name: Dummy 
+      run: echo "${{ github.workspace }}\Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.arch }}" > ${{ github.workspace }}\Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.arch }}.exe
+    - name: Uploading installer
+      uses: actions/upload-artifact@v2
+      with:
+        name: Widelands ${{ matrix.config }} ${{ matrix.arch }} Installer (MinGW)
+        path: ${{ github.workspace }}\Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.arch }}.exe
 
   macos:
     strategy:
