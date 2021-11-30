@@ -129,4 +129,15 @@ jobs:
             */Widelands-daily-*.dmg
             */Widelands-daily-*.md5
             artifacts.list
+      - name: Update Release Body
+        uses: tubone24/update_release@v1.3.1
+        env:
+          TAG_NAME: "latest"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          is_append_body: true
+          body: |
+            ---
+            Automatically generated release,
+            with multiline description
 
