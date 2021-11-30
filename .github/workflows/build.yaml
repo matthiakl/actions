@@ -118,13 +118,18 @@ jobs:
       - name: Updating latest pre-release
         # Creates a new pre-release with the "latest" tag and all gathered artifacts.
         # Because all older artifacts are removed, we have to reupload the missing ones detected in the previous step
-        uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        uses: "ncipollo/release-action@v1.9.0"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          allowUpdates: true
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag: "latest"
           prerelease: true
-          title: "Development Builds"
-          files: |
+          removeArtifacts: true
+          name: "Development Builds"
+          body: |
+            Automatically generated release.
+            With multiline description, but without change list.
+          artifacts: |
             */Widelands-daily-*.exe
             */Widelands-daily-*.dmg
             */Widelands-daily-*.md5
