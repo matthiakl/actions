@@ -35,14 +35,14 @@ jobs:
         $env:DATE = Get-Date -Format "ddMMyyyy"
         $env:BRANCH = "vcpkg-update-$env:DATE"
         git checkout -b $env:BRANCH
-        Set-Content ${{ env.VCPKG_VERSION }} $env:HEAD
+        Set-Content ${{ env.VCPKG_VERSION }} ${{ steps.check.outputs.to }}
         git config --global user.name "bunnybot"
         git config --global user.email "bunnybot@widelands.org"
         git add ${{ env.VCPKG_VERSION }}
         git commit -m "Update vcpkg"
         git push origin $env:BRANCH
         echo "::set-output name=branch::$env:BRANCH"
-    - name: Create pull request for $env:BRANCH
+    - name: Create pull request for ${{ steps.update.outputs.branch }}
       id: create-pr
       uses: actions/github-script@v2
       with:
@@ -54,5 +54,5 @@ jobs:
             title: "Update vcpkg version",
             head: "${{ steps.update.outputs.branch }}",
             base: "master",
-            body: `Update VCPKG from ${{ steps.check.outputs.from }} to ${{ steps.check.outputs.to }}`
+            body: `Update [vcpkg](https://github.com/microsoft/vcpkg) from **${{ steps.check.outputs.from }}** to **${{ steps.check.outputs.to }}**`
           })
