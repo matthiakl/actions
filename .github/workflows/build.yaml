@@ -9,9 +9,9 @@ jobs:
     runs-on: windows-latest
     env:
       VCPKG_ROOT: C:\vcpkg
-      VCPGK_COMMIT: 7bb175eafedb203f19b18cf211666ec728c7461a
+      VCPKG_COMMIT: 60a8f7971e5b23c329c2bca3b0bb82e7f65a0e35
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
-      VCPKG_TARGET_TRIPLET: ${{ matrix.arch }}-windows-static
+      VCPKG_TARGET_TRIPLET: x64-windows-static
 
     steps:
     - name: "Create cache directory"
@@ -20,9 +20,14 @@ jobs:
     - name: Installing dependencies
       run: |
         pushd ${{ env.VCPKG_ROOT }}
+        $env:HEAD = git rev-parse HEAD
+        if ("${{ env.VCPKG_COMMIT }}" -Match "$env:HEAD") {
+          echo No update
+          exit 1
+        }
         git fetch
-        git checkout ${{ env.VCPGK_COMMIT }} || true
-        git status || true
+        git checkout ${{ env.VCPKG_COMMIT }}
+        git status
         popd
         vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} sdl2-mixer[libvorbis,libflac,mpg123]
 
