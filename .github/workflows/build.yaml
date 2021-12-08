@@ -26,17 +26,16 @@ jobs:
           echo "No update availabe"
           exit 0
         }
-        echo "VCPKG updated $env:LAST from to $env:HEAD"
+        echo "VCPKG updated from $env:LAST to $env:HEAD"
         git fetch
         git checkout ${{ env.VCPKG_COMMIT }}
         git status
-    - name: Check dependencies
-      run: |
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} sdl2-mixer[libvorbis,libflac,mpg123]
     - name: Update version
       run: |
         git checkout -B vcpkg-update
         perl -p -i -e's/(VCPKG_COMMIT:) [0-9a-z]+/$1 $env:HEAD/' .github/workflows/build.yaml
+        git config --global user.name "bunnybot"
+        git config --global user.email "bunnybot@widelands.org"
         git add .github/workflows/build.yaml
         git commit -m "Update vcpkg"
-        git push
+        git push origin
