@@ -27,16 +27,14 @@ jobs:
           exit 0
         }
         echo "VCPKG updated from $env:LAST to $env:HEAD"
-        git fetch
-        git checkout ${{ env.VCPKG_COMMIT }}
-        git status
     - name: Update version
       run: |
-        $env:DATE = Get-Date -Format "MMddyyyy"
-        git checkout -B vcpkg-update-$env:DATE
+        $env:DATE = Get-Date -Format "ddMMyyyy"
+        $env:BRANCH = vcpkg-update-$env:DATE
+        git checkout -b $env:BRANCH
         perl -p -i -e's/(VCPKG_COMMIT:) [0-9a-z]+/$1 $env:HEAD/' .github/workflows/build.yaml
         git config --global user.name "bunnybot"
         git config --global user.email "bunnybot@widelands.org"
         git add .github/workflows/build.yaml
         git commit -m "Update vcpkg"
-        git push --set-upstream origin
+        git push --set-upstream origin $env:BRANCH
