@@ -10,7 +10,6 @@ jobs:
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_TARGET_TRIPLET: x64-windows-static
-      VCPKG_COMMIT: 7bb175eafedb203f19b18cf211666ec728c7461a
 
     steps:
     - name: Checkout
@@ -19,7 +18,7 @@ jobs:
         fetch-depth: 0
     - name: Check version
       run: |
-        $env:LAST = perl -n -e'/VCPKG_COMMIT: ([0-9a-z]+)/ and print($1)' .github/workflows/build.yaml
+        $env:LAST = Get-Content vcpkg_version
         cd ${{ env.VCPKG_ROOT }}
         $env:HEAD = git rev-parse HEAD
         if ("$env:LAST" -Match "$env:HEAD") {
@@ -32,9 +31,9 @@ jobs:
         $env:DATE = Get-Date -Format "ddMMyyyy"
         $env:BRANCH = "vcpkg-update-$env:DATE"
         git checkout -b $env:BRANCH
-        perl -p -i -e's/(VCPKG_COMMIT:) [0-9a-z]+/$1 $env:HEAD/' .github/workflows/build.yaml
+        echo $env:HEAD > vcpkg_version
         git config --global user.name "bunnybot"
         git config --global user.email "bunnybot@widelands.org"
-        git add .github/workflows/build.yaml
+        git add vcpkg_version
         git commit -m "Update vcpkg"
         git push --set-upstream origin $env:BRANCH
