@@ -32,10 +32,11 @@ jobs:
         git status
     - name: Update version
       run: |
-        git checkout -B vcpkg-update
+        $env:DATE = Get-Date -Format "MMddyyyy"
+        git checkout -B vcpkg-update-$env:DATE
         perl -p -i -e's/(VCPKG_COMMIT:) [0-9a-z]+/$1 $env:HEAD/' .github/workflows/build.yaml
         git config --global user.name "bunnybot"
         git config --global user.email "bunnybot@widelands.org"
         git add .github/workflows/build.yaml
         git commit -m "Update vcpkg"
-        git push origin
+        git push --set-upstream origin
