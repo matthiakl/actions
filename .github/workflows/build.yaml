@@ -31,7 +31,7 @@ jobs:
           exit 0
         }
         echo "::set-output name=branch::$env:BRANCH"
-        $env:PULL = curl -i "https://api.github.com/repos/${{ github.repository }}/pulls?head=actions:$env:BRANCH" | perl -n -e'/ref.*($env:BRANCH)/ and print($1)'
+        $env:PULL = curl "https://api.github.com/repos/${{ github.repository }}/pulls?head=$env:BRANCH" | perl -n -e'/ref.*($env:BRANCH)/ and print($1)'
         echo "$env:PULL"
         if ("$env:PULL" -Match "$env:BRANCH") {
           echo "Version already checked"
