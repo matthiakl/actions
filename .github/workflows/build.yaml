@@ -20,7 +20,7 @@ jobs:
     - name: Installing dependencies
       run: |
         pushd ${{ env.VCPKG_ROOT }}
-        Get-ChildItem -Force
+        git fetch
         git checkout ${{ env.VCPGK_COMMIT }} || true
         git status || true
         popd
