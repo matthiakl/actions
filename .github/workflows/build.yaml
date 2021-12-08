@@ -17,6 +17,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Check version
+      id: check
       run: |
         cd ${{ env.VCPKG_ROOT }}
         $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
@@ -26,7 +27,10 @@ jobs:
           exit 0
         }
         echo "VCPKG updated from $env:LAST to $env:HEAD"
+        echo "::set-output name=from::$env:LAST"
+        echo "::set-output name=to::$env:HEAD"
     - name: Update version
+      id: update
       run: |
         $env:DATE = Get-Date -Format "ddMMyyyy"
         $env:BRANCH = "vcpkg-update-$env:DATE"
@@ -37,18 +41,18 @@ jobs:
         git add ${{ env.VCPKG_VERSION }}
         git commit -m "Update vcpkg"
         git push origin $env:BRANCH
+        echo "::set-output name=branch::$env:BRANCH"
     - name: Create pull request for $env:BRANCH
       id: create-pr
       uses: actions/github-script@v2
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          let response = await github.pulls.create({
+          await github.pulls.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
             title: "Update vcpkg version",
-            head: "$env:BRANCH",
+            head: "${{ steps.update.outputs.branch }}",
             base: "master",
-            body: `Update VCPKG from $env:LAST to $env:HEAD`
-          });
-          return response.data.number
+            body: `Update VCPKG from ${{ steps.check.outputs.from }} to ${{ steps.check.outputs.to }}`
+          })
