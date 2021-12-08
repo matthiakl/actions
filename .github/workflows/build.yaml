@@ -9,25 +9,34 @@ jobs:
     runs-on: windows-latest
     env:
       VCPKG_ROOT: C:\vcpkg
-      VCPKG_COMMIT: 60a8f7971e5b23c329c2bca3b0bb82e7f65a0e35
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
       VCPKG_TARGET_TRIPLET: x64-windows-static
+      VCPGK_COMMIT: 7bb175eafedb203f19b18cf211666ec728c7461a
 
     steps:
-    - name: "Create cache directory"
-      run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
-      shell: bash
-    - name: Installing dependencies
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Check version
       run: |
-        pushd ${{ env.VCPKG_ROOT }}
+        cd ${{ env.VCPKG_ROOT }}
         $env:HEAD = git rev-parse HEAD
-        if ("${{ env.VCPKG_COMMIT }}" -Match "$env:HEAD") {
-          echo No update
-          exit 1
+        $env:LAST = perl -n -e'/VCPKG_COMMIT: ([0-9a-z]+)/ and print($1)' .github/workflows/build.yaml
+        echo $env:LAST
+        if ("$env:LAST" -Match "$env:HEAD") {
+          echo "No update availabe"
+          exit 0
         }
         git fetch
         git checkout ${{ env.VCPKG_COMMIT }}
         git status
-        popd
+    - name: Check dependencies
+      run: |
         vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} sdl2-mixer[libvorbis,libflac,mpg123]
-
+    - name: Update version
+      run: |
+        git checkout -B vcpkg-update
+        perl -p -i -e's/(VCPKG_COMMIT:) [0-9a-z]+/$1 $env:HEAD/' .github/workflows/build.yaml
+        git add .github/workflows/build.yaml
+        git commit -m "Update vcpkg"
+        git push
