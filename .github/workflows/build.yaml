@@ -30,12 +30,13 @@ jobs:
       run: |
         $env:DATE = Get-Date -Format "ddMMyyyy"
         $env:BRANCH = "vcpkg-update-$env:DATE"
+        git checkout -b $env:BRANCH
         Set-Content ${{ env.VCPKG_VERSION }} $env:HEAD
         git config --global user.name "bunnybot"
         git config --global user.email "bunnybot@widelands.org"
         git add ${{ env.VCPKG_VERSION }}
         git commit -m "Update vcpkg"
-        git push --set-upstream origin $env:BRANCH
+        git push origin $env:BRANCH
     - name: Create pull request for $env:BRANCH
       id: create-pr
       uses: actions/github-script@v2
