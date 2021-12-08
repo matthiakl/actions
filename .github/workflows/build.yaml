@@ -10,7 +10,7 @@ jobs:
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_TARGET_TRIPLET: x64-windows-static
-      VCPGK_COMMIT: 7bb175eafedb203f19b18cf211666ec728c7461a
+      VCPKG_COMMIT: 7bb175eafedb203f19b18cf211666ec728c7461a
 
     steps:
     - name: Checkout
@@ -19,14 +19,14 @@ jobs:
         fetch-depth: 0
     - name: Check version
       run: |
+        $env:LAST = perl -n -e'/VCPKG_COMMIT: ([0-9a-z]+)/ and print($1)' .github/workflows/build.yaml
         cd ${{ env.VCPKG_ROOT }}
         $env:HEAD = git rev-parse HEAD
-        $env:LAST = perl -n -e'/VCPKG_COMMIT: ([0-9a-z]+)/ and print($1)' .github/workflows/build.yaml
-        echo $env:LAST
         if ("$env:LAST" -Match "$env:HEAD") {
           echo "No update availabe"
           exit 0
         }
+        echo "VCPKG updated $env:LAST from to $env:HEAD"
         git fetch
         git checkout ${{ env.VCPKG_COMMIT }}
         git status
