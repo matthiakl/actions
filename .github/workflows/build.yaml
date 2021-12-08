@@ -30,7 +30,7 @@ jobs:
     - name: Update version
       run: |
         $env:DATE = Get-Date -Format "ddMMyyyy"
-        $env:BRANCH = vcpkg-update-$env:DATE
+        $env:BRANCH = "vcpkg-update-$env:DATE"
         git checkout -b $env:BRANCH
         perl -p -i -e's/(VCPKG_COMMIT:) [0-9a-z]+/$1 $env:HEAD/' .github/workflows/build.yaml
         git config --global user.name "bunnybot"
