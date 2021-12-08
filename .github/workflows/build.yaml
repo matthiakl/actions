@@ -30,6 +30,7 @@ jobs:
         echo "::set-output name=from::$env:LAST"
         echo "::set-output name=to::$env:HEAD"
     - name: Update version
+      if: steps.check.outputs.to != ''
       id: update
       run: |
         $env:DATE = Get-Date -Format "ddMMyyyy"
@@ -43,6 +44,7 @@ jobs:
         git push origin $env:BRANCH
         echo "::set-output name=branch::$env:BRANCH"
     - name: Create pull request for ${{ steps.update.outputs.branch }}
+      if: steps.check.outputs.to != ''
       id: create-pr
       uses: actions/github-script@v2
       with:
