@@ -5,6 +5,8 @@ on:
 
 jobs:
   vcpkg:
+    name: Check vcpkg
+    runs-on: windows-latest
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPGK_COMMIT: 7bb175eafedb203f19b18cf211666ec728c7461a
