@@ -24,40 +24,44 @@ jobs:
       run: |
         cd ${{ env.VCPKG_ROOT }}
         $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
-        $env:HEAD = git rev-parse HEAD
+        $env:HEAD = git rev-parse --short HEAD
+        $env:BRANCH = "vcpkg-$env:HEAD"
         if ("$env:LAST" -Match "$env:HEAD") {
           echo "No update availabe"
           exit 0
         }
-        echo "VCPKG updated from $env:LAST to $env:HEAD"
+        echo "::set-output name=branch::$env:BRANCH"
+        $env:PULL = curl -i "https://api.github.com/repos/${{ github.repository }}/pulls?head=actions:$env:BRANCH" | perl -n -e'/ref.*($env:BRANCH)/ and print($1)'
+        if ("$$env:PULL" -Match "$env:BRANCH") {
+          echo "Version already checked"
+          exit 0
+        }
+        echo "vcpkg updated from $env:LAST to $env:HEAD"
         echo "::set-output name=from::$env:LAST"
         echo "::set-output name=to::$env:HEAD"
     - name: Update version
       if: steps.check.outputs.to != ''
       id: update
       run: |
-        $env:DATE = Get-Date -Format "ddMMyyyy"
-        $env:BRANCH = "vcpkg-update-$env:DATE"
-        git checkout -b $env:BRANCH
+        git checkout -b ${{ steps.check.outputs.branch }}
         Set-Content ${{ env.VCPKG_VERSION }} ${{ steps.check.outputs.to }}
         git config --global user.name "bunnybot"
         git config --global user.email "bunnybot@widelands.org"
         git add ${{ env.VCPKG_VERSION }}
         git commit -m "Update vcpkg"
-        git push origin $env:BRANCH
-        echo "::set-output name=branch::$env:BRANCH"
-    - name: Create pull request for ${{ steps.update.outputs.branch }}
+        git push origin ${{ steps.check.outputs.branch }}
+    - name: Create pull request for ${{ steps.check.outputs.branch }}
       if: steps.check.outputs.to != ''
       id: create-pr
       uses: actions/github-script@v2
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          await github.pulls.create({
+          github.pulls.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            title: "Update vcpkg version",
-            head: "${{ steps.update.outputs.branch }}",
+            title: "Update vcpkg to ${{ steps.check.outputs.to }}",
+            head: "${{ steps.check.outputs.branch }}",
             base: "master",
             body: `Update [vcpkg](https://github.com/microsoft/vcpkg) from **${{ steps.check.outputs.from }}** to **${{ steps.check.outputs.to }}**`
           })
