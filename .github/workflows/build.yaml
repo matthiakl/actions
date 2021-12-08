@@ -35,7 +35,7 @@ jobs:
         git config --global user.email "bunnybot@widelands.org"
         git add ${{ env.VCPKG_VERSION }}
         git commit -m "Update vcpkg"
-        git push origin $env:BRANCH
+        git push --set-upstream origin $env:BRANCH
     - name: Create pull request for $env:BRANCH
       id: create-pr
       uses: actions/github-script@v2
