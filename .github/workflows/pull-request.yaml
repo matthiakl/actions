@@ -1,0 +1,25 @@
+name: Build
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  vcpkg:
+    name: vcpkg packages
+    runs-on: windows-latest
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
+      VCPKG_TARGET_TRIPLET: x64-windows-static
+
+    steps:
+    - name: Build packages
+      id: build
+      run: |
+        mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} libweb
+        7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
+    - name: Store cache
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ steps.check.outputs.branch }}-bincache
+        path: ${{ github.workspace }}\${{ steps.check.outputs.branch }}.7z
