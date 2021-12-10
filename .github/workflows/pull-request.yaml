@@ -1,4 +1,4 @@
-name: Build
+name: compile
 on:
   pull_request:
     types: [ opened, reopened, synchronize ]
