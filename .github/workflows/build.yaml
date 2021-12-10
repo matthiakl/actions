@@ -27,7 +27,7 @@ jobs:
       with:
         path: ${{ env.CACHE }}
         key: |
-          ${{ hashFiles( '${{ env.VCPKG_VERSION }}' ) }}
+          ${{ hashFiles( 'vcpkg_version' ) }}
     - name: Check version
       id: check
       run: |
@@ -81,9 +81,9 @@ jobs:
       if: steps.check.outputs.to != ''
       id: build
       run: |
-        echo "::set-output success=true"
+        echo "::set-output name=success::true"
         mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} libwebp || echo "::set-output success=false"
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} libwebp || echo "::set-output name=success::false"
         7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
     - name: Store cache
       if: steps.build.outputs.success == 'true'
