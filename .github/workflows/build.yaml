@@ -81,18 +81,18 @@ jobs:
       if: steps.check.outputs.to != ''
       id: build
       run: |
-        echo "::set-output name=success::true"
+        echo "::set-output name=success::success"
         mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} boost gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp || echo "::set-output name=success::false"
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} libweb || echo "::set-output name=success::fail"
         7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
     - name: Store cache
-      if: steps.build.outputs.success == 'true'
+      if: steps.build.outputs.success == 'success'
       uses: actions/upload-artifact@v2
       with:
         name: vcpkg binary cache for ${{ steps.check.outputs.to }}
         path: ${{ github.workspace }}\${{ steps.check.outputs.branch }}.7z
     - name: Review pull request for ${{ steps.check.outputs.branch }}
-      if: steps.build.outputs.success == 'true'
+      if: steps.check.outputs.to != ''
       id: review-pr
       uses: actions/github-script@v2
       with:
@@ -102,5 +102,6 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             pull_number: ${{ steps.create-pr.outputs.result }},
-            event: "APPROVE"
+            event: "COMMENT"
+            body: `Build result: ${{ steps.build.outputs.success }}`
           })
