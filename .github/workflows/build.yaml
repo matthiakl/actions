@@ -60,9 +60,9 @@ jobs:
         git config --global user.email "bunnybot@widelands.org"
         git add ${{ env.VCPKG_VERSION }}
         git commit -m "Update vcpkg"
-        # git push origin ${{ steps.check.outputs.branch }}
+        git push origin ${{ steps.check.outputs.branch }}
     - name: Create pull request for ${{ steps.check.outputs.branch }}
-      if: steps.check.outputs.to == '0'
+      if: steps.check.outputs.to != ''
       id: create-pr
       uses: actions/github-script@v2
       with:
@@ -74,7 +74,7 @@ jobs:
             title: "Update vcpkg to ${{ steps.check.outputs.to }}",
             head: "${{ steps.check.outputs.branch }}",
             base: "master",
-            body: `Update [vcpkg](https://github.com/microsoft/vcpkg) from **${{ steps.check.outputs.from }}** to **${{ steps.check.outputs.to }}**`
+            body: `Update vcpkg from **[${{ steps.check.outputs.from }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }})** to **[${{ steps.check.outputs.to }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }})**`
           });
           return response.data.number
     - name: Build packages
@@ -83,16 +83,16 @@ jobs:
       run: |
         echo "::set-output success=true"
         mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} boost gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp || echo "::set-output success=false"
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} libwebp || echo "::set-output success=false"
         7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
     - name: Store cache
-      if: steps.build.outputs.success
+      if: steps.build.outputs.success == 'true'
       uses: actions/upload-artifact@v2
       with:
         name: vcpkg binary cache for ${{ steps.check.outputs.to }}
         path: ${{ github.workspace }}\${{ steps.check.outputs.branch }}.7z
     - name: Review pull request for ${{ steps.check.outputs.branch }}
-      if: steps.build.outputs.success
+      if: steps.build.outputs.success == 'true'
       id: review-pr
       uses: actions/github-script@v2
       with:
