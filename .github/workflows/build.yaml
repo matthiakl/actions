@@ -15,16 +15,17 @@ jobs:
       VCPKG_VERSION: ${{ github.workspace }}/vcpkg_version
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
       VCPKG_TARGET_TRIPLET: x64-windows-static
+      CACHE: ${{ github.workspace }}/checked
 
     steps:
     - name: Checkout
       uses: actions/checkout@v2
       with:
-        fetch-depth: 0
+        fetch-depth: 1
     - name: Restore transient info
       uses: actions/cache@v2
       with:
-        path: checked
+        path: ${{ env.CACHE }}
         key: |
           ${{ hashFiles( '${{ env.VCPKG_VERSION }}' ) }}
     - name: Check version
@@ -37,11 +38,12 @@ jobs:
         if ("$env:LAST" -Match "$env:HEAD") {
           echo "No update availabe"
           exit 0
-        }
-        $env:CHECKED = Get-Content checked
-        if ( "$env:CHECKED" -Match "$env:HEAD" ) {
-          echo "Version $env:HEAD already checked"
-          exit 0
+        } elseif ( Test-Path ${{ env.CACHE }} ) {
+          $env:CHECKED = Get-Content ${{ env.CACHE }}
+          if ( "$env:CHECKED" -Match "$env:HEAD" ) {
+            echo "Version $env:HEAD already checked"
+            exit 0
+          }
         }
         echo "vcpkg updated from $env:LAST to $env:HEAD"
         echo "::set-output name=branch::$env:BRANCH"
@@ -53,7 +55,7 @@ jobs:
       run: |
         git checkout -b ${{ steps.check.outputs.branch }}
         Set-Content ${{ env.VCPKG_VERSION }} ${{ steps.check.outputs.to }}
-        Set-Content checked ${{ steps.check.outputs.to }}
+        Set-Content ${{ env.CACHE }} ${{ steps.check.outputs.to }}
         git config --global user.name "bunnybot"
         git config --global user.email "bunnybot@widelands.org"
         git add ${{ env.VCPKG_VERSION }}
