@@ -1,4 +1,4 @@
-name: Build
+name: compile
 on:
   pull_request:
     types: [ opened, reopened, synchronize ]
@@ -16,7 +16,7 @@ jobs:
       id: build
       run: |
         mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} libweb
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} boost gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp
         7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
     - name: Store cache
       uses: actions/upload-artifact@v2
