@@ -60,9 +60,9 @@ jobs:
         git config --global user.email "bunnybot@widelands.org"
         git add ${{ env.VCPKG_VERSION }}
         git commit -m "Update vcpkg"
-        git push origin ${{ steps.check.outputs.branch }}
+        # git push origin ${{ steps.check.outputs.branch }}
     - name: Create pull request for ${{ steps.check.outputs.branch }}
-      if: steps.check.outputs.to != ''
+      if: steps.check.outputs.to == '0'
       id: create-pr
       uses: actions/github-script@v2
       with:
@@ -82,8 +82,9 @@ jobs:
       id: build
       run: |
         echo "::set-output success=true"
+        mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
         vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} boost gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp || echo "::set-output success=false"
-        7za a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
+        7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
     - name: Store cache
       if: steps.build.outputs.success
       uses: actions/upload-artifact@v2
