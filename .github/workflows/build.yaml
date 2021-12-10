@@ -83,7 +83,7 @@ jobs:
       run: |
         echo "::set-output name=success::true"
         mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} libwebp || echo "::set-output name=success::false"
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} boost gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp || echo "::set-output name=success::false"
         7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ${{ steps.check.outputs.branch }}.7z "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
     - name: Store cache
       if: steps.build.outputs.success == 'true'
@@ -102,5 +102,5 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             pull_number: ${{ steps.create-pr.outputs.result }},
-            event: APPROVE
+            event: "APPROVE"
           })
