@@ -20,18 +20,23 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 1
+    - name: "Get HEAD"
+      id: prepare
+      run: |
+        cd ${{ env.VCPKG_ROOT }}
+        $env:HEAD = git rev-parse --short HEAD
+        echo "::set-output name=head::$env:HEAD"
     - name: Restore transient info
       uses: actions/cache@v2
       with:
         path: ${{ env.CACHE }}
-        key: |
-          ${{ hashFiles( 'vcpkg_version' ) }}
+        key: ${{ steps.prepare.outputs.head }}
     - name: Check version
       id: check
       run: |
         cd ${{ env.VCPKG_ROOT }}
         $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
-        $env:HEAD = git rev-parse --short HEAD
+        $env:HEAD = ${{ steps.prepare.outputs.head }}
         $env:BRANCH = "vcpkg-$env:HEAD"
         if ("$env:LAST" -Match "$env:HEAD") {
           echo "No update availabe"
