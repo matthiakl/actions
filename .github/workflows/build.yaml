@@ -36,7 +36,7 @@ jobs:
       run: |
         cd ${{ env.VCPKG_ROOT }}
         $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
-        $env:HEAD = ${{ steps.prepare.outputs.head }}
+        $env:HEAD = "${{ steps.prepare.outputs.head }}"
         $env:BRANCH = "vcpkg-$env:HEAD"
         if ("$env:LAST" -Match "$env:HEAD") {
           echo "No update availabe"
