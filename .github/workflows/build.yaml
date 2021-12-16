@@ -22,10 +22,10 @@ jobs:
         fetch-depth: 1
     - name: "Get HEAD"
       id: prepare
-      shell: bash
       run: |
         cd ${{ env.VCPKG_ROOT }}
-        echo "::set-output name=head::$(git rev-parse --short HEAD)"
+        $env:HEAD = git rev-parse --short HEAD
+        echo "::set-output name=head::$env:HEAD"
     - name: Restore transient info
       uses: actions/cache@v2
       with:
@@ -33,23 +33,25 @@ jobs:
         key: ${{ steps.prepare.outputs.head }}
     - name: Check version
       id: check
-      shell: bash
       run: |
         cd ${{ env.VCPKG_ROOT }}
-        LAST = $(cat ${{ env.VCPKG_VERSION }})
-        HEAD = ${{ steps.prepare.outputs.head }}
-        BRANCH = "vcpkg-$HEAD"
-        if [ "$LAST" = "$HEAD" ] ; then
+        $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
+        $env:HEAD = "${{ steps.prepare.outputs.head }}"
+        $env:BRANCH = "vcpkg-$env:HEAD"
+        if ("$env:LAST" -Match "$env:HEAD") {
           echo "No update availabe"
           exit 0
-        elif [ -f ${{ env.CACHE }} ] && [ "$(cat ${{ env.CACHE }})" = "$HEAD" ] {
-          echo "Version $HEAD already checked"
-          exit 0
+        } elseif ( Test-Path ${{ env.CACHE }} ) {
+          $env:CHECKED = Get-Content ${{ env.CACHE }}
+          if ( "$env:CHECKED" -Match "$env:HEAD" ) {
+            echo "Version $env:HEAD already checked"
+            exit 0
+          }
         }
-        echo "vcpkg updated from $LAST to $HEAD"
-        echo "::set-output name=branch::$BRANCH"
-        echo "::set-output name=from::$LAST"
-        echo "::set-output name=to::$HEAD"
+        echo "vcpkg updated from $env:LAST to $env:HEAD"
+        echo "::set-output name=branch::$env:BRANCH"
+        echo "::set-output name=from::$env:LAST"
+        echo "::set-output name=to::$env:HEAD"
     - name: Update version
       if: steps.check.outputs.to != ''
       id: update
