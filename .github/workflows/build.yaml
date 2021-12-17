@@ -77,5 +77,5 @@ jobs:
             title: "Update vcpkg to ${{ steps.check.outputs.to }}",
             head: "${{ steps.check.outputs.branch }}",
             base: "master",
-            body: `Update vcpkg from **[${{ steps.check.outputs.from }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }})** to **[${{ steps.check.outputs.to }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }})**`
+            body: `Update vcpkg from https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }} to https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }}`
           })
