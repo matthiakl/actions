@@ -30,7 +30,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.CACHE }}
-        key: ${{ hashFiles( '${{ env.VCPKG_VERSION }}' ) }}-${{ steps.prepare.outputs.head }}
+        key: ${{ hashFiles( 'vcpkg_version' ) }}-${{ steps.prepare.outputs.head }}
     - name: Check version
       id: check
       run: |
