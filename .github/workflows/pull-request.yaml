@@ -1,5 +1,7 @@
 name: compile
 on:
+  push:
+    branches: [ vcpkg-* ]
   pull_request:
     types: [ opened, reopened, synchronize ]
 
