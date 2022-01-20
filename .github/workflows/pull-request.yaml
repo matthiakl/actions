@@ -28,6 +28,6 @@ jobs:
           github.pulls.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            pull_number: github.event.pull_request.number,
+            pull_number: context.issue.number,
             merge_method: "squash"
           })
