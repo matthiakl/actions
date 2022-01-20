@@ -71,11 +71,24 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          github.pulls.create({
+          let response = await github.pulls.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
             title: "Update vcpkg to ${{ steps.check.outputs.to }}",
             head: "${{ steps.check.outputs.branch }}",
             base: "master",
             body: `Update vcpkg from https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }} to https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }}`
+          });
+          return response.data.number
+    - name: Set labels
+      if: steps.check.outputs.to != ''
+      uses: actions/github-script@v2
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          github.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number:  ${{ steps.create-pr.outputs.result }},
+              labels: ["automerge"]
           })

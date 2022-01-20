@@ -1,12 +1,11 @@
 name: compile
 on:
-  push:
-    branches: [ vcpkg-* ]
   pull_request:
-    types: [ opened, reopened, synchronize ]
+    types: [ labeled ]
 
 jobs:
   vcpkg:
+    if: ${{ github.event.label.name == 'automerge' }}
     name: vcpkg packages
     runs-on: windows-latest
     env:
@@ -19,3 +18,16 @@ jobs:
       run: |
         mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
         vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} boost gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp
+
+    - name: Merge
+      id: merge-pr
+      uses: actions/github-script@v2
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          github.pulls.merge({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: github.event.pull_request.number,
+            merge_method: "squash"
+          })
