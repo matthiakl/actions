@@ -32,8 +32,8 @@ jobs:
       with:
         path: ${{ env.VCPKG_VERSION }}
         key: |
-          vcpkg-${{ github.ref }}-${{ steps.prepare.outputs.head }}
-        restore-key: |
+          vcpkg-${{ github.ref }}-${{ steps.version.outputs.head }}
+        restore-keys: |
           vcpkg-refs/heads/master-
     - name: Create cache directory
       id: prepare
