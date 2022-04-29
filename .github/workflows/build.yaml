@@ -25,7 +25,8 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.VCPKG_VERSION }}
-        key: ${{ hashFiles( 'C:\InstalledSoftware.md' ) }}
+        key: |
+          ${{ hashFiles( 'C:\InstalledSoftware.md' ) }}
     - name: "Create cache directory"
       id: prepare
       run: |
