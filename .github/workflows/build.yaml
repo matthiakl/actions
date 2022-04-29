@@ -30,8 +30,10 @@ jobs:
       id: prepare
       run: |
         mkdir -p ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        cd ${{ env.VCPKG_ROOT }}
         Get-ChildItem -Recurse
+        cd C:\
+        Get-ChildItem
+        cd ${{ env.VCPKG_ROOT }}
         if (Test-Path ${{ env.VCPKG_VERSION }}) {
           $env:HEAD = Get-Content ${{ env.VCPKG_VERSION }}
           git checkout $env:HEAD
