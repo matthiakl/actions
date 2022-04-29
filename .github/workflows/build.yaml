@@ -6,6 +6,10 @@ jobs:
   vcpkg:
     name: Check vcpkg
     runs-on: windows-2022
+    strategy:
+      matrix:
+        arch:
+          x64
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_VERSION: ${{ github.workspace }}/vcpkg_version
@@ -21,12 +25,13 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.VCPKG_VERSION }}
-        key: ${{ hashFiles( '${{ env.VCPKG_ROOT }}/.git/refs/heads/master' ) }}
+        key: any
     - name: "Create cache directory"
       id: prepare
       run: |
         mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
         cd ${{ env.VCPKG_ROOT }}
+        Get-ChildItem -Recurse
         if (${{ steps.prepare.outputs.cache-hit }}) {
           $env:HEAD = Get-Content ${{ env.VCPKG_VERSION }}
           git checkout $env:HEAD
