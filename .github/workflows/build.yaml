@@ -32,14 +32,13 @@ jobs:
         mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
         cd ${{ env.VCPKG_ROOT }}
         Get-ChildItem -Recurse
-        if (${{ steps.prepare.outputs.cache-hit }}) {
+        if (Test-Path ${{ env.VCPKG_VERSION }}) {
           $env:HEAD = Get-Content ${{ env.VCPKG_VERSION }}
           git checkout $env:HEAD
         }
-        $env:HEAD = $(git rev-parse --short HEAD)
+        $env:HEAD = git rev-parse --short HEAD
         Set-Content ${{ env.VCPKG_VERSION }} $env:HEAD
         echo "::set-output name=head::$env:HEAD"
-      shell: bash
     - name: Restore vcpkg and its artifacts.
       uses: actions/cache@v2
       with:
