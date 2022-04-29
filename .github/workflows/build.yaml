@@ -25,14 +25,12 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.VCPKG_VERSION }}
-        key: any
+        key: ${{ hashFiles( 'C:\InstalledSoftware.md' ) }}
     - name: "Create cache directory"
       id: prepare
       run: |
         mkdir -p ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        Get-ChildItem -Recurse
-        cd C:\
-        Get-ChildItem
+        Get-Content C:\InstalledSoftware.md
         cd ${{ env.VCPKG_ROOT }}
         if (Test-Path ${{ env.VCPKG_VERSION }}) {
           $env:HEAD = Get-Content ${{ env.VCPKG_VERSION }}
