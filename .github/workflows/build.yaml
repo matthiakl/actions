@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         arch:
-          x64
+          - x64
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_VERSION: ${{ github.workspace }}/vcpkg_version
