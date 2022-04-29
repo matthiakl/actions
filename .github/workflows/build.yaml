@@ -22,16 +22,23 @@ jobs:
       with:
         fetch-depth: 1
     - name: Get vcpkg version
+      id: version
+      run: |
+        cd ${{ env.VCPKG_ROOT }}
+        $env:HEAD = git rev-parse --short HEAD
+        echo "::set-output name=head::$env:HEAD"
+    - name: Check vcpkg version
       uses: actions/cache@v2
       with:
         path: ${{ env.VCPKG_VERSION }}
         key: |
-          ${{ hashFiles( 'C:\InstalledSoftware.md' ) }}
-    - name: "Create cache directory"
+          vcpkg-${{ github.ref }}-${{ steps.prepare.outputs.head }}
+        restore-key: |
+          vcpkg-refs/heads/master-
+    - name: Create cache directory
       id: prepare
       run: |
         mkdir -p ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        Get-Content C:\InstalledSoftware.md
         cd ${{ env.VCPKG_ROOT }}
         if (Test-Path ${{ env.VCPKG_VERSION }}) {
           $env:HEAD = Get-Content ${{ env.VCPKG_VERSION }}
