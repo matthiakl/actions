@@ -3,6 +3,32 @@ on:
   push:
 
 jobs:
+  testsuite:
+    strategy:
+      fail-fast: false
+      matrix:
+        # We test the two newest and the two oldest versions of each of the two compilers
+        config: [Debug, Release]
+        os: [ubuntu-22.04]
+        compiler: [clang-14, g++-12]
+    runs-on: ${{ matrix.os }}
+    env:
+      SDL_VIDEODRIVER: 'x11'
+      DISPLAY: ':99.0'
+      # TODO: Under Xvfb, the usual X11 memory leaks show up as an unsymbolized
+      # <unknown module> making them impossible to suppress. So we disable all
+      # memory leaks checking in the testsuite for now.
+      ASAN_OPTIONS: 'detect_leaks=0'
+      LSAN_OPTIONS: 'suppressions=${{ github.workspace }}/asan_3rd_party_leaks'
+      CXX: '${{ matrix.compiler }}'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+    - name: Installing dependencies
+      run: sh ./.github/scripts/install_deps.sh
+      
   vcpkg:
     name: Check vcpkg
     runs-on: windows-2022
