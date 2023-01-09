@@ -123,7 +123,7 @@ jobs:
         env:
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          ARTIFACTS=$(find . -name 'Widelands-daily-*' -printf '"%f" ')
+          ARTIFACTS=$(find . -name 'Widelands-daily-*' -printf '"%p" ')
           echo $ARTIFACTS
           gh release create latest         \
             --target master                \
