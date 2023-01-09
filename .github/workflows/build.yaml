@@ -74,6 +74,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 15
       - name: Download artifacts
         uses: actions/download-artifact@v2
       - name: Check missing artifacts
