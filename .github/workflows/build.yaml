@@ -120,6 +120,7 @@ jobs:
         env:
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
+          gh release delete latest --yes
           gh release create latest         \
             --target master                \
             --prerelease --generate-notes  \
