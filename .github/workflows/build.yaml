@@ -72,6 +72,8 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Download artifacts
         uses: actions/download-artifact@v2
       - name: Check missing artifacts
@@ -122,14 +124,14 @@ jobs:
           git tag --force previous HEAD~10
           git tag --force latest HEAD
           git push --tags
-          gh release create latest        \
-            --prerelease --generate-notes \
-            --notes-start-tag previous    \
+          gh release create latest         \
+            --prerelease --generate-notes  \
+            --notes-start-tag previous     \
             --notes "These builds are automatically generated from master. The most recent changes are listed above. The file `artifacts.list` lists the original installer names, which also contain the commit hash from which they were generated." \
-            --title "Development Builds"  \
-            */Widelands-daily-*.exe       \
-            */Widelands-daily-*.dmg       \
-            */Widelands-daily-*.AppImage  \
-            */Widelands-daily-*.md5       \
+            --title "Development Builds"   \
+            "*/Widelands-daily-*.exe"      \
+            "*/Widelands-daily-*.dmg"      \
+            "*/Widelands-daily-*.AppImage" \
+            "*/Widelands-daily-*.md5"      \
             artifacts.list
 
