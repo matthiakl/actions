@@ -126,6 +126,6 @@ jobs:
             --notes-start-tag latest       \
             --notes "These builds are automatically generated from master. The most recent changes are listed above. The file \`artifacts.list\` lists the original installer names, which also contain the commit hash from which they were generated." \
             --title "Development Builds"   \
-            */Widelands-daily-*            \
+            Widelands-daily-*              \
             artifacts.list
 
