@@ -98,16 +98,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install rename
-          find . -type d -name "Widelands *" -exec bash -c 'mv "$0" "${0// /_}"' {} \;
+          find . -name 'Widelands*' -type f -exec bash -c 'mv "$0" $(basename "$0")' {} \;
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
           find . -name 'Widelands*' -type f -exec prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "{}" \;
           find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
-            dir=$(dirname "$ARTIFACT")
-            filename=$(basename "$ARTIFACT")
             echo "Calculate checksum for \"$ARTIFACT\""
-            pushd "$dir"
-            md5sum "${filename}" > "${filename}.md5"
-            popd
+            md5sum "${ARTIFACT}" > "${ARTIFACT}.md5"
           done
           # curl exits 23 because grep will kill it after the first match
           set +e
