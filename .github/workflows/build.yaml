@@ -123,12 +123,10 @@ jobs:
         env:
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          git tag --force previous HEAD~10
-          git tag --force latest HEAD
-          git push --tags
           gh release create latest         \
+            --target master                \
             --prerelease --generate-notes  \
-            --notes-start-tag previous     \
+            --notes-start-tag latest       \
             --notes "These builds are automatically generated from master. The most recent changes are listed above. The file `artifacts.list` lists the original installer names, which also contain the commit hash from which they were generated." \
             --title "Development Builds"   \
             "*/Widelands-daily-*.exe"      \
