@@ -98,6 +98,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install rename
+          find . -type d -name "Widelands *" -exec bash -c 'mv "$0" "${0// /_}"' {} \;
           find . -name 'Widelands*' -type f -printf '%f\n' | tee artifacts.list
           find . -name 'Widelands*' -type f -exec prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "{}" \;
           find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
@@ -129,6 +130,6 @@ jobs:
             --notes-start-tag latest       \
             --notes "These builds are automatically generated from master. The most recent changes are listed above. The file \`artifacts.list\` lists the original installer names, which also contain the commit hash from which they were generated." \
             --title "Development Builds"   \
-            $(find . -name 'Widelands-daily-*' -printf '"%p" ') \
+            */Widelands-daily-*            \
             artifacts.list
 
