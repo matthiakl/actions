@@ -121,9 +121,9 @@ jobs:
           GH_TOKEN: "${{ secrets.MY_TOKEN }}"
         run: |
           git remote add push_target https://${ACTOR_NAME}:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-          gh release delete latest --yes || echo "No old release to delete"
-          git push --delete push_target latest
-          git push --delete push_target previous
+          gh release delete latest --yes         || echo "No old release to delete"
+          git push --delete push_target latest   || echo "No latest tag to delete"
+          git push --delete push_target previous || echo "No previous tag to delete"
           git tag --force previous HEAD~10
           git tag --force latest HEAD
           git push --tags push_target
