@@ -122,11 +122,11 @@ jobs:
           GH_TOKEN: "${{ secrets.MY_TOKEN }}"
         run: |
           gh release delete latest --yes    || echo "No old release to delete"
-          git push --delete latest   		|| echo "No latest tag to delete"
-          git push --delete previous 		|| echo "No previous tag to delete"
+          git push --delete origin latest   || echo "No latest tag to delete"
+          git push --delete origin previous || echo "No previous tag to delete"
           git tag --force previous HEAD~10
           git tag --force latest HEAD
-          git push --tags 					|| echo "Unable to push all tags"
+          git push --tags origin			|| echo "Unable to push all tags"
           gh release create latest         \
             --prerelease --generate-notes  \
             --notes-start-tag previous     \
