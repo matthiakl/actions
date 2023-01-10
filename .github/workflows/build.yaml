@@ -125,15 +125,16 @@ jobs:
           git push --delete origin latest   || echo "No latest tag to delete"
           git tag --force latest HEAD
           git push --tags origin
+          
           echo "These builds are automatically generated from master. " >> release_notes
-          echo "The most recent changes are listed below. " >> release_notes
-          echo "The file \`artifacts.list\` lists the original installer names, which also contain the commit hash from which they were generated." >> release_notes
-          echo "---" >> release_notes
+          echo "## Latest changes" >> release_notes
           git log --pretty="%h %s (%cd)" --date=short --no-decorate HEAD~10..HEAD >> release_notes
+          echo "## Original filenames" >> release_notes
+          cat artifacts.list >> release_notes
+          
           gh release create latest         \
             --prerelease                   \
             --notes-file release_notes     \
             --title "Development Builds"   \
-            Widelands-daily-*              \
-            artifacts.list
+            Widelands-daily-*
 
