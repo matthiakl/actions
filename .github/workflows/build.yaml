@@ -104,7 +104,7 @@ jobs:
             # Move all artifacts to the current folder
             mv "$ARTIFACT" "$FILENAME"
             # Store original file names
-            echo $FILENAME | tee artifacts.list
+            echo $FILENAME | tee -a artifacts.list
             # Rename artifacts to have a fixed url
             prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "$FILENAME" \;
           done
