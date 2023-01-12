@@ -100,12 +100,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install rename
           find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
+            FILENAME=$(basename "$ARTIFACT")
             # Move all artifacts to the current folder
-            mv "$ARTIFACT" $(basename "$ARTIFACT")
+            mv "$ARTIFACT" "$FILENAME"
             # Store original file names
-            echo ${ARTIFACT} | tee artifacts.list
+            echo $FILENAME | tee artifacts.list
             # Rename artifacts to have a fixed url
-            prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "$ARTIFACT" \;
+            prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "$FILENAME" \;
           done
           # Calculate checksums
           find . -name 'Widelands-daily-*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
