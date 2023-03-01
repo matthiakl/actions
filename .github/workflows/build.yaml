@@ -29,10 +29,7 @@ jobs:
         mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
         cd ${{ env.VCPKG_ROOT }}
         HEAD=$(git rev-parse --short HEAD)
-        echo "vcpkg_key=${{ hashFiles( '.github/workflows/build.yaml' ) }}-${HEAD}" >> $GITHUB_OUTPUT
-        # List all dependencies once
-        echo "vcpkg_packages='asio gettext'" >> $GITHUB_OUTPUT
-        #  libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp'
+        echo "vcpkg_key=${{ hashFiles( './install-dependencies.sh' ) }}-${HEAD}" >> $GITHUB_OUTPUT
       shell: bash
     - name: Restore vcpkg and its artifacts.
       uses: actions/cache@v3
@@ -41,9 +38,7 @@ jobs:
         key: |
           ${{ steps.prepare.outputs.vcpkg_key }}-${{ matrix.arch }}
     - name: Installing dependencies
-      run: |
-        sh ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} ${{ steps.prepare.outputs.vcpkg_packages }}
+      run: sh ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
       shell: bash
 
   windows-msvc:
@@ -79,7 +74,8 @@ jobs:
     - name: Installing dependencies
       run: |
         choco install innosetup
-        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} asio gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp
+        sh ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
+      shell: bash
     - name: Dummy
       run: echo "${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}" > ${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}.exe
     - name: Uploading installer
