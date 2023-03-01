@@ -13,7 +13,7 @@ jobs:
     name: vcpkg packages for Windows ${{ matrix.arch }}
     runs-on: windows-2022
     outputs:
-      vcpkg_key: ${{ ssteps.prepare.outputs.vcpkg_key }}
+      vcpkg_key: ${{ steps.prepare.outputs.vcpkg_key }}
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
