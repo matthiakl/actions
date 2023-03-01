@@ -6,26 +6,88 @@ on:
     branches: [ master ]
 
 jobs:
-  windows-msvc:
+  vcpkg-packages:
     strategy:
       matrix:
-        config:
-          - Release
-          - Debug
-        arch:
-          - x64
-          - x86
-    name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
-    runs-on: windows-latest
+        arch: [x64, x86]
+    name: vcpkg packages for Windows ${{ matrix.arch }}
+    runs-on: windows-2022
+    outputs:
+      vcpkg_key: ${{ ssteps.prepare.outputs.vcpkg_key }}
+    env:
+      VCPKG_ROOT: C:\vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
+      VCPKG_TARGET_TRIPLET: ${{ matrix.arch }}-windows-static
     steps:
-    - name: Dummy 
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+    - name: "Create cache directory"
+      id: prepare
+      run: |
+        mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
+        cd ${{ env.VCPKG_ROOT }}
+        HEAD=$(git rev-parse --short HEAD)
+        echo "vcpkg_key=${{ hashFiles( '.github/workflows/build.yaml' ) }}-${HEAD}" >> $GITHUB_OUTPUT
+        # List all dependencies once
+        echo "vcpkg_packages='asio gettext'" >> $GITHUB_OUTPUT
+        #  libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp'
+      shell: bash
+    - name: Restore vcpkg and its artifacts.
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+        key: |
+          ${{ steps.prepare.outputs.vcpkg_key }}-${{ matrix.arch }}
+    - name: Installing dependencies
+      run: |
+        sh ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} ${{ steps.prepare.outputs.vcpkg_packages }}
+      shell: bash
+
+  windows-msvc:
+    # inspired by https://github.com/lukka/CppCMakeVcpkgTemplate/blob/main/.github/workflows/hosted-pure-workflow.yml
+    needs: vcpkg-packages
+    strategy:
+      matrix:
+        config: [Debug, Release]
+        arch: [x64, x86]
+    name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
+    runs-on: windows-2022
+    env:
+      VCPKG_ROOT: C:\vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
+      VCPKG_TARGET_TRIPLET: ${{ matrix.arch }}-windows-static
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+    - name: "Create cache directory"
+      id: prepare
+      run: |
+        mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
+      shell: bash
+    - name: Restore vcpkg and its artifacts.
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+        key: |
+          ${{needs.vcpkg-packages.outputs.vcpkg_key}}-${{ matrix.arch }}
+    - name: Installing dependencies
+      run: |
+        choco install innosetup
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} asio gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp
+    - name: Dummy
       run: echo "${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}" > ${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}.exe
     - name: Uploading installer
       uses: actions/upload-artifact@v2
       with:
         name: Widelands ${{ matrix.config }} ${{ matrix.arch }} Installer (MSVC)
         path: ${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}.exe
-        
+
   windows:
     strategy:
       matrix:
@@ -38,7 +100,7 @@ jobs:
     name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MinGW)
     runs-on: windows-latest
     steps:
-    - name: Dummy 
+    - name: Dummy
       run: echo "${{ github.workspace }}\Widelands-${{ github.sha }}-MinGW-${{ matrix.config }}-${{ matrix.arch }}" > ${{ github.workspace }}\Widelands-${{ github.sha }}-MinGW-${{ matrix.config }}-${{ matrix.arch }}.exe
     - name: Uploading installer
       uses: actions/upload-artifact@v2
@@ -57,95 +119,11 @@ jobs:
     name: MacOS ${{ matrix.config }} ${{ matrix.compiler }}
     runs-on: macos-11
     steps:
-    - name: Dummy 
+    - name: Dummy
       run: echo "${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}" > ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
     - name: Uploading DMG
       uses: actions/upload-artifact@v2
       with:
         name: Widelands ${{ matrix.config }} ${{ matrix.compiler }} MacOS 11 AppImage
         path: ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
-        
-  dev_release:
-    name: Automated development pre-release
-    if: ${{ github.repository == 'matthiakl/actions' && github.ref == 'refs/heads/master' && always() }}
-    needs: [windows-msvc, macos]
-    runs-on: "ubuntu-latest"
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 15
-          token: '${{ secrets.MY_TOKEN }}'
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-      - name: Check missing artifacts
-        # This step ensures, that the development release always contain an artifact for every platform
-        # artifacts.list lists all attachements of the pre-release. In case a build step failed, we detect
-        # that a file is missing and download the last successful build from the pre-release.
-        run: |
-          RELEASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/latest"
-          mkdir Widelands-latest
-          cd Widelands-latest
-          curl -L -O "$RELEASE_URL/artifacts.list"
-          for ARTIFACT in $(cat artifacts.list)
-          do
-            [ "${ARTIFACT%%-*}" != "Widelands" ] && continue
-            MATRIX=$(echo $ARTIFACT | sed 's/Widelands-[0-9a-f]*-//' -)
-            ls ../Widelands*/Widelands*${MATRIX} || \
-              curl -L -o $ARTIFACT "$RELEASE_URL/Widelands-daily-${MATRIX}"
-          done
-      - name: List and rename artifacts
-        run: |
-          sudo apt-get update
-          sudo apt-get install rename
-          find . -name 'Widelands*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
-            FILENAME=$(basename "$ARTIFACT")
-            # Move all artifacts to the current folder
-            mv "$ARTIFACT" "$FILENAME"
-            # Store original file names
-            echo $FILENAME | tee -a artifacts.list
-            # Rename artifacts to have a fixed url
-            prename 's/Widelands-[0-9a-f]*-/Widelands-daily-/' "$FILENAME" \;
-          done
-          # Calculate checksums
-          find . -name 'Widelands-daily-*' -type f -print0 | while IFS= read -d '' -r ARTIFACT; do
-            echo "Calculate checksum for \"$ARTIFACT\""
-            md5sum "${ARTIFACT}" > "${ARTIFACT}.md5"
-          done
-          # curl exits 23 because grep will kill it after the first match
-          set +e
-          latest=$(curl -i "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/master" | grep -m 1 "\"sha\": ")
-          set -e
-          latest=${latest#*: \"}
-          latest=${latest%\",}
-          if [ "$latest" != "$GITHUB_SHA" ]
-          then
-            echo "The master branch ($GITHUB_REF) was updated from '$GITHUB_SHA' to '$latest', cancel"
-            # TODO reenable: exit 1
-          fi
-      - name: Updating latest pre-release
-        # Creates a new pre-release with the "latest" tag and all gathered artifacts.
-        # Because all older artifacts are removed, we have to reupload the missing ones detected in the previous step
-        env:
-          GH_TOKEN: "${{ secrets.MY_TOKEN }}"
-        run: |
-          gh release delete latest --yes    || echo "No old release to delete"
-          git push --delete origin latest   || echo "No latest tag to delete"
-          git tag --force latest HEAD
-          git push --tags origin
-          
-          echo "These builds are automatically generated from master. " >> release_notes
-          echo "## Latest changes" >> release_notes
-          # Print changelog from last 10 commits
-          git log --pretty="- %h: %s (%an)" --no-decorate HEAD~10..HEAD >> release_notes
-          echo "<details><summary>Original filenames</summary><pre>" >> release_notes
-          cat artifacts.list >> release_notes
-          echo "</pre></details>" >> release_notes
-          
-          gh release create latest         \
-            --prerelease                   \
-            --notes-file release_notes     \
-            --title "Development Builds"   \
-            Widelands-daily-* artifacts.list
 
