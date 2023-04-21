@@ -1,7 +1,5 @@
 name: Build
 on:
-  pull_request:
-    types: [ opened, reopened, synchronize ]
   push:
     branches: [ master ]
 
@@ -10,116 +8,43 @@ jobs:
     strategy:
       matrix:
         arch: [x64, x86]
-    name: vcpkg packages for Windows ${{ matrix.arch }}
+    name: Build vcpkg packages for ${{ matrix.arch }}
     runs-on: windows-2022
-    outputs:
-      vcpkg_key: ${{ steps.prepare.outputs.vcpkg_key }}
     env:
       VCPKG_ROOT: C:\vcpkg
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
       VCPKG_TARGET_TRIPLET: ${{ matrix.arch }}-windows-static
     steps:
     - name: Checkout
       uses: actions/checkout@v3
       with:
         fetch-depth: 1
-    - name: "Create cache directory"
+    - name: Get vcpkg version
       id: prepare
       run: |
-        mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
-        cd ${{ env.VCPKG_ROOT }}
+        pushd ${{ env.VCPKG_ROOT }}
         HEAD=$(git rev-parse --short HEAD)
-        echo "vcpkg_key=${{ hashFiles( './install-dependencies.sh' ) }}-${HEAD}" >> $GITHUB_OUTPUT
+        popd
+        echo -n $HEAD > .github/scripts/vcpkg_ref
+        git config --global user.name "The Widelands Build Bot"
+        git config --global user.email "bunnybot@widelands.org"
       shell: bash
-    - name: Restore vcpkg and its artifacts.
+    - name: Check whether cache exists
+      id: lookup
       uses: actions/cache@v3
       with:
-        path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+        path: ${{ env.VCPKG_ROOT }}/installed
         key: |
-          ${{ steps.prepare.outputs.vcpkg_key }}-${{ matrix.arch }}
-    - name: Installing dependencies
-      run: sh ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
+          ${{ hashFiles( './install-dependencies.sh', '.github/scripts/vcpkg_ref' ) }}-${{ matrix.arch }}
+    - name: Building packages
+      id: build
+      if: steps.prepare.lookup.cache-hit != 'true'
+      run: ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
       shell: bash
-
-  windows-msvc:
-    # inspired by https://github.com/lukka/CppCMakeVcpkgTemplate/blob/main/.github/workflows/hosted-pure-workflow.yml
-    needs: vcpkg-packages
-    strategy:
-      matrix:
-        config: [Debug, Release]
-        arch: [x64, x86]
-    name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
-    runs-on: windows-2022
-    env:
-      VCPKG_ROOT: C:\vcpkg
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
-      VCPKG_TARGET_TRIPLET: ${{ matrix.arch }}-windows-static
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 1
-    - name: "Create cache directory"
-      id: prepare
+    - name: Update vcpkg_ref
+      if: ${{ success() && steps.prepare.lookup.cache-hit != 'true' }}
       run: |
-        mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
+        git add .github/scripts/vcpkg_ref
+        git commit -m "Update vcpkg version"
+        # git push "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${{ github.action_repository }}.git" master
+        git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${{ github.action_repository }}.git" master
       shell: bash
-    - name: Restore vcpkg and its artifacts.
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-        key: |
-          ${{needs.vcpkg-packages.outputs.vcpkg_key}}-${{ matrix.arch }}
-    - name: Installing dependencies
-      run: |
-        choco install innosetup
-        sh ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
-      shell: bash
-    - name: Dummy
-      run: echo "${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}" > ${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}.exe
-    - name: Uploading installer
-      uses: actions/upload-artifact@v2
-      with:
-        name: Widelands ${{ matrix.config }} ${{ matrix.arch }} Installer (MSVC)
-        path: ${{ github.workspace }}\Widelands-${{ github.sha }}-MSVC-${{ matrix.config }}-${{ matrix.arch }}.exe
-
-  windows:
-    strategy:
-      matrix:
-        config:
-          - Release
-          - Debug
-        arch:
-          - x64
-          - x86
-    name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MinGW)
-    runs-on: windows-latest
-    steps:
-    - name: Dummy
-      run: echo "${{ github.workspace }}\Widelands-${{ github.sha }}-MinGW-${{ matrix.config }}-${{ matrix.arch }}" > ${{ github.workspace }}\Widelands-${{ github.sha }}-MinGW-${{ matrix.config }}-${{ matrix.arch }}.exe
-    - name: Uploading installer
-      uses: actions/upload-artifact@v2
-      with:
-        name: Widelands ${{ matrix.config }} ${{ matrix.arch }} Installer (MinGW)
-        path: ${{ github.workspace }}\Widelands-${{ github.sha }}-MinGW-${{ matrix.config }}-${{ matrix.arch }}.exe
-
-  macos:
-    strategy:
-      matrix:
-        config:
-          #- release
-          - debug
-        compiler:
-          - clang
-    name: MacOS ${{ matrix.config }} ${{ matrix.compiler }}
-    runs-on: macos-11
-    steps:
-    - name: Dummy
-      run: echo "${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}" > ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
-    - name: Uploading DMG
-      uses: actions/upload-artifact@v2
-      with:
-        name: Widelands ${{ matrix.config }} ${{ matrix.compiler }} MacOS 11 AppImage
-        path: ${{ github.workspace }}/Widelands-${{ github.sha }}-${{ matrix.config }}-${{ matrix.compiler }}.dmg
-
