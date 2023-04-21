@@ -45,6 +45,6 @@ jobs:
       run: |
         git add .github/scripts/vcpkg_ref
         git commit -m "Update vcpkg version"
-        # git push "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${{ github.action_repository }}.git" master
-        git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${{ github.action_repository }}.git" master
+        # git push "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" master
+        git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" master
       shell: bash
