@@ -24,6 +24,7 @@ jobs:
         pushd ${{ env.VCPKG_ROOT }}
         HEAD=$(git rev-parse --short HEAD)
         popd
+        echo "Current HEAD is $HEAD"
         echo -n $HEAD > .github/scripts/vcpkg_ref
         git config --global user.name "The Widelands Build Bot"
         git config --global user.email "bunnybot@widelands.org"
