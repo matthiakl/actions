@@ -44,7 +44,6 @@ jobs:
         ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
         echo "result-${{ matrix.arch }}=true" >> $GITHUB_OUTPUT
       shell: bash
-
   update:
     needs: [ vcpkg-packages ]
     if: ${{ needs.vcpkg-packages.outputs.result-x64 && needs.vcpkg-packages.outputs.result-x86 }}
