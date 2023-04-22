@@ -39,7 +39,7 @@ jobs:
           ${{ hashFiles( './install-dependencies.sh', '.github/scripts/vcpkg_ref' ) }}-${{ matrix.arch }}
     - name: Building packages
       id: build
-      if: steps.prepare.lookup.cache-hit != 'true'
+      if: steps.lookup.outputs.cache-hit != 'true'
       run: |
         ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
         echo "result-${{ matrix.arch }}=true" >> $GITHUB_OUTPUT
@@ -69,5 +69,5 @@ jobs:
         git add .github/scripts/vcpkg_ref
         git commit -m "Update vcpkg version"
         # git push "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${{ github.repository }}.git" master
-        git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${{ github.repository }}.git" master
+        git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${{ github.repository }}" master
       shell: bash
