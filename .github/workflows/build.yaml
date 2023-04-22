@@ -13,6 +13,9 @@ jobs:
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_TARGET_TRIPLET: ${{ matrix.arch }}-windows-static
+    outputs:
+      result-x64: ${{ steps.build.outputs.result-x64 }}
+      result-x86: ${{ steps.build.outputs.result-x86 }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -26,8 +29,6 @@ jobs:
         popd
         echo "Current HEAD is $HEAD"
         echo -n $HEAD > .github/scripts/vcpkg_ref
-        git config --global user.name "The Widelands Build Bot"
-        git config --global user.email "bunnybot@widelands.org"
       shell: bash
     - name: Check whether cache exists
       id: lookup
@@ -39,13 +40,32 @@ jobs:
     - name: Building packages
       id: build
       if: steps.prepare.lookup.cache-hit != 'true'
-      run: ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
-      shell: bash
-    - name: Update vcpkg_ref
-      if: ${{ success() && steps.prepare.lookup.cache-hit != 'true' }}
       run: |
+        ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
+        echo "result-${{ matrix.arch }}=true" >> $GITHUB_OUTPUT
+      shell: bash
+
+  update:
+    needs: [ vcpkg-packages ]
+    if: ${{ needs.vcpkg-packages.outputs.result-x64 && needs.vcpkg-packages.outputs.result-x86 }}
+    name: Commit new version
+    runs-on: windows-2022
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+        persist-credentials: false
+    - name: Update vcpkg_ref
+      run: |
+        pushd ${{ env.VCPKG_ROOT }}
+        HEAD=$(git rev-parse --short HEAD)
+        popd
+        echo "Current HEAD is $HEAD"
+        echo -n $HEAD > .github/scripts/vcpkg_ref
+        git config --global user.name "The Widelands Build Bot"
+        git config --global user.email "bunnybot@widelands.org"
         git add .github/scripts/vcpkg_ref
         git commit -m "Update vcpkg version"
-        # git push "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" master
-        git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" master
+        # git push "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${{ github.repository }}.git" master
+        git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${{ github.repository }}.git" master
       shell: bash
