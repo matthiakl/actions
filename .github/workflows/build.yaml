@@ -49,6 +49,8 @@ jobs:
     if: ${{ needs.vcpkg-packages.outputs.result-x64 && needs.vcpkg-packages.outputs.result-x86 }}
     name: Commit new version
     runs-on: windows-2022
+    env:
+      VCPKG_ROOT: C:\vcpkg
     steps:
     - name: Checkout
       uses: actions/checkout@v3
