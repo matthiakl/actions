@@ -75,6 +75,6 @@ jobs:
           git config --global user.email "bunnybot@widelands.org"
           git add .github/scripts/vcpkg_ref
           git commit -m "Update vcpkg version"
-          git push "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${{ github.repository }}.git" master
+          git push "https://matthiakl:${{ secrets.ACTION_TOKEN }}@github.com/${{ github.repository }}.git" master
         fi
       shell: bash
