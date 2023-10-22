@@ -4,12 +4,10 @@ on:
 
 jobs:
   windows-msvc:
-    # inspired by https://github.com/lukka/CppCMakeVcpkgTemplate/blob/main/.github/workflows/hosted-pure-workflow.yml
-    needs: [clang_tidy, documentation, codecheck, misc_sanity_checks, lua_style]
     strategy:
       matrix:
-        config: [Debug, Release]
-        arch: [x64, x86]
+        config: [Debug]
+        arch: [x64]
     name: Windows ${{ matrix.config }} ${{ matrix.arch }} Build (MSVC)
     runs-on: windows-2022
     env:
