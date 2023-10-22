@@ -55,9 +55,9 @@ jobs:
       shell: bash
   update:
     needs: vcpkg-packages
-    if: ${{ needs.vcpkg-packages.outputs.result-x64 && needs.vcpkg-packages.outputs.result-x86 }}
+    #if: ${{ needs.vcpkg-packages.outputs.result-x64 && needs.vcpkg-packages.outputs.result-x86 }}
     name: Commit new version
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     env:
       VCPKG_ROOT: C:\vcpkg
     steps:

@@ -30,6 +30,12 @@ jobs:
         echo "vcpkg_key=${{ hashFiles( './install-dependencies.sh' ) }}-${REF}" >> $GITHUB_OUTPUT
         echo "toolset=${TOOLSET}" >> $GITHUB_OUTPUT
       shell: bash
+    - name: Test hardcoded cache key
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.VCPKG_ROOT }}/installed
+        key: |
+          6560e989504494a99a736cdc72b108e541714d524eb54172e6764ea8528a50fc-e57b2167e-x86
     - name: Restore vcpkg and its artifacts.
       uses: actions/cache@v3
       with:
